@@ -1,0 +1,5 @@
+1001,java,james gosling
+1003,operating system,concepts by silberschatz, galvin and gagne
+1004,computer networks,frouzen
+1005,python,guido
+1006,hc verma physics,hc verma
