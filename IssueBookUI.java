@@ -1,87 +1,156 @@
 import javax.swing.*;
 import java.io.*;
+import java.time.LocalDate;
 
 public class IssueBookUI {
 
+    JFrame frame;
+    JComboBox<String> genreFilter;
+    JComboBox<String> bookDropdown;
+    JTextField userField;
+
     public IssueBookUI() {
 
-        JFrame frame = new JFrame("Issue Book");
-        frame.setSize(300,250);
+        frame = new JFrame("Issue Book");
+        frame.setSize(450,300);
         frame.setLayout(null);
 
-        JLabel idLabel = new JLabel("Book ID");
-        idLabel.setBounds(20,30,100,25);
-        frame.add(idLabel);
+        // ✅ Genre Dropdown
+        String[] genres = {
+                "All", "Fantasy", "Science", "Horror",
+                "Romance", "History", "Programming", "Education"
+        };
 
-        JTextField idField = new JTextField();
-        idField.setBounds(120,30,140,25);
-        frame.add(idField);
+        genreFilter = new JComboBox<>(genres);
+        genreFilter.setBounds(20, 20, 150, 25);
+        frame.add(genreFilter);
 
-        JLabel studentLabel = new JLabel("Student");
-        studentLabel.setBounds(20,70,100,25);
-        frame.add(studentLabel);
+        // ✅ Book Dropdown
+        bookDropdown = new JComboBox<>();
+        bookDropdown.setBounds(200, 20, 200, 25);
+        frame.add(bookDropdown);
 
-        JTextField studentField = new JTextField();
-        studentField.setBounds(120,70,140,25);
-        frame.add(studentField);
+        // ✅ User Name
+        JLabel userLabel = new JLabel("User Name:");
+        userLabel.setBounds(20, 70, 100, 25);
+        frame.add(userLabel);
 
-        JButton issueBtn = new JButton("Issue");
-        issueBtn.setBounds(90,120,100,30);
+        userField = new JTextField();
+        userField.setBounds(120, 70, 200, 25);
+        frame.add(userField);
+
+        // ✅ Issue Button
+        JButton issueBtn = new JButton("Issue Book");
+        issueBtn.setBounds(120, 120, 150, 30);
         frame.add(issueBtn);
 
+        // ✅ Initial Load
+        loadBooksByGenre("All");
+
+        // ✅ Filter by Genre
+        genreFilter.addActionListener(e -> {
+            String selectedGenre = genreFilter.getSelectedItem().toString();
+            loadBooksByGenre(selectedGenre);
+        });
+
+        // ✅ Issue Button Logic
         issueBtn.addActionListener(e -> {
-
             try {
-                int bookId = Integer.parseInt(idField.getText());
-                String student = studentField.getText();
+                String selectedBook = (String) bookDropdown.getSelectedItem();
+                String user = userField.getText();
 
-                // check already issued
-                File file = new File("issued.txt");
-                if(file.exists()) {
-                    BufferedReader br =
-                        new BufferedReader(new FileReader(file));
-
-                    String line;
-
-                    while((line = br.readLine()) != null) {
-                        String[] parts = line.split(",",4);
-
-                        if(Integer.parseInt(parts[0]) == bookId) {
-                            JOptionPane.showMessageDialog(frame,
-                                    "Book already issued");
-                            br.close();
-                            return;
-                        }
-                    }
-
-                    br.close();
+                if(selectedBook == null || user.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Enter all details");
+                    return;
                 }
 
-                java.time.LocalDate issueDate =
-                        java.time.LocalDate.now();
+                // 🔥 Prevent duplicate issue
+                if(isBookIssued(selectedBook)) {
+                    JOptionPane.showMessageDialog(frame, "Book already issued!");
+                    return;
+                }
 
-                java.time.LocalDate dueDate =
-                        issueDate.plusDays(7);
+                String date = LocalDate.now().toString(); // ✅ Issue Date
 
-                FileWriter fw =
-                        new FileWriter("issued.txt", true);
-
-                fw.write(bookId + "," +
-                        student + "," +
-                        issueDate + "," +
-                        dueDate + "\n");
-
+                FileWriter fw = new FileWriter("issued.txt", true);
+                fw.write(selectedBook + "|" + user + "|" + date + "\n");
                 fw.close();
 
-                JOptionPane.showMessageDialog(frame,
-                        "Book Issued\nDue Date: " + dueDate);
+                JOptionPane.showMessageDialog(frame, "Book Issued Successfully");
 
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame,"Error");
+                // Refresh dropdown
+                loadBooksByGenre(genreFilter.getSelectedItem().toString());
+
+            } catch(Exception ex) {
+                ex.printStackTrace();
             }
         });
 
         frame.setLocationRelativeTo(null);
-frame.setVisible(true);
+        frame.setVisible(true);
+    }
+
+    // ✅ Load Books Based on Genre (AND remove issued books)
+    private void loadBooksByGenre(String selectedGenre) {
+        try {
+            bookDropdown.removeAllItems();
+
+            BufferedReader br = new BufferedReader(new FileReader("books.txt"));
+            String line;
+
+            while((line = br.readLine()) != null) {
+
+                String[] data = line.split("\\|");
+
+                if(data.length < 4) continue;
+
+                String bookName = data[1];
+                String genre = data[3];
+
+                if((selectedGenre.equals("All") || genre.equalsIgnoreCase(selectedGenre))
+                        && !isBookIssued(bookName)) {
+
+                    bookDropdown.addItem(bookName);
+                }
+            }
+
+            br.close();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ✅ Check if Book Already Issued
+    private boolean isBookIssued(String bookName) {
+        try {
+            File file = new File("issued.txt");
+
+            if(!file.exists()) return false;
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while((line = br.readLine()) != null) {
+
+                String[] data = line.split("\\|");
+
+                if(data.length >= 1) {
+                    String issuedBook = data[0];
+
+                    if(issuedBook.equalsIgnoreCase(bookName)) {
+                        br.close();
+                        return true;
+                    }
+                }
+            }
+
+            br.close();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

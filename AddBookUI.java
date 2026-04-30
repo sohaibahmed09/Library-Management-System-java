@@ -4,6 +4,17 @@ import java.io.FileWriter;
 public class AddBookUI {
 
     public AddBookUI() {
+        JLabel genreLabel = new JLabel("Genre:");
+String[] genres = {
+    "Fantasy",
+    "Science",
+    "Horror",
+    "Romance",
+    "History",
+    "Programming",   
+    "Education"      
+};
+JComboBox<String> genreCombo = new JComboBox<>(genres);
 
         JFrame frame = new JFrame("Add Book");
         frame.setSize(300,250);
@@ -30,21 +41,26 @@ public class AddBookUI {
         frame.add(addBtn);
 
         addBtn.addActionListener(e -> {
-            try {
-                int id = BookIdGenerator.getNextId();
+    try {
+        int id = BookIdGenerator.getNextId();
 
-                FileWriter fw = new FileWriter("books.txt", true);
-                fw.write(id + "," +
-                        nameField.getText() + "," +
-                        authorField.getText() + "\n");
-                fw.close();
+        String name = nameField.getText();
+        String author = authorField.getText();
+        String genre = genreCombo.getSelectedItem().toString(); // ✅ NEW
 
-                JOptionPane.showMessageDialog(frame,"Book Added");
+        FileWriter fw = new FileWriter("books.txt", true);
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
+        // ✅ UPDATED LINE (adds genre)
+        fw.write(id + "|" + name + "|" + author + "|" + genre + "\n");
+
+        fw.close();
+
+        JOptionPane.showMessageDialog(frame,"Book Added");
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+});
  frame.setLocationRelativeTo(null);
 frame.setVisible(true);
         

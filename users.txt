@@ -1,3 +1,2 @@
-admin,admin123,ADMIN
-sohaib,1234,STUDENT
-rahul,1111,STUDENT
+admin|admin123|ADMIN
+sohaib|1234|STUDENT

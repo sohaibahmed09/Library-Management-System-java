@@ -1,56 +1,108 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.io.*;
 
 public class LoginUI {
 
-    public static void main(String[] args) {
+    JFrame frame;
 
-        JFrame frame = new JFrame("Library Login");
-        frame.setSize(350,250);
+    public LoginUI() {
+
+        frame = new JFrame("Library Login");
+        frame.setSize(350, 250);
         frame.setLayout(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JLabel userLabel = new JLabel("Username");
-        userLabel.setBounds(60,40,100,25);
+        // ===== LABELS =====
+        JLabel userLabel = new JLabel("Username:");
+        JLabel passLabel = new JLabel("Password:");
+
+        userLabel.setBounds(30, 30, 100, 25);
+        passLabel.setBounds(30, 70, 100, 25);
+
         frame.add(userLabel);
-
-        JTextField userText = new JTextField();
-        userText.setBounds(150,40,140,25);
-        frame.add(userText);
-
-        JLabel passLabel = new JLabel("Password");
-        passLabel.setBounds(60,80,100,25);
         frame.add(passLabel);
 
-        JPasswordField passText = new JPasswordField();
-        passText.setBounds(150,80,140,25);
-        frame.add(passText);
+        // ===== FIELDS =====
+        JTextField userField = new JTextField();
+        JPasswordField passField = new JPasswordField();
 
+        userField.setBounds(120, 30, 150, 25);
+        passField.setBounds(120, 70, 150, 25);
+
+        frame.add(userField);
+        frame.add(passField);
+
+        // ===== LOGIN BUTTON =====
         JButton loginBtn = new JButton("Login");
-        loginBtn.setBounds(125,130,100,30);
+        loginBtn.setBounds(120, 120, 100, 30);
         frame.add(loginBtn);
 
+        // ===== ACTION =====
         loginBtn.addActionListener(e -> {
 
-            String username = userText.getText();
-            String password = new String(passText.getPassword());
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
 
-            User user = loginService.login(username, password);
+            boolean found = false;
+            String role = "";
 
-            if(user != null && user.getRole().equals("ADMIN")) {
+            try {
+                File file = new File("users.txt");
+
+                if (!file.exists()) {
+                    JOptionPane.showMessageDialog(frame, "users.txt not found!");
+                    return;
+                }
+
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line;
+
+                while ((line = br.readLine()) != null) {
+
+                    String[] data = line.split("\\|");
+
+                    if (data.length < 3) continue;
+
+                    String fileUser = data[0];
+                    String filePass = data[1];
+                    String fileRole = data[2];
+
+                    if (fileUser.equals(username) && filePass.equals(password)) {
+                        found = true;
+                        role = fileRole;
+                        break;
+                    }
+                }
+
+                br.close();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            if (found) {
+
+                JOptionPane.showMessageDialog(frame, "Login Successful! Role: " + role);
+
                 frame.dispose();
-              if(user.getRole().equals("ADMIN")) {
-         new AdminUI();
-           } else {
-               new StudentUI(user.getUsername());
-              }
+
+                // ===== ROLE BASED REDIRECT =====
+                if (role.equalsIgnoreCase("ADMIN")) {
+
+                    new AdminDashboardUI();
+
+                } else {
+
+                    // ✅ FIXED: pass STRING, not object
+                    new StudentDashboardUI(username);
+                }
+
             } else {
-                JOptionPane.showMessageDialog(frame,"Invalid login");
+                JOptionPane.showMessageDialog(frame, "Invalid Credentials!");
             }
         });
 
         frame.setLocationRelativeTo(null);
-frame.setVisible(true);
+        frame.setVisible(true);
     }
 }

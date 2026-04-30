@@ -1,5 +1,15 @@
-1001,java,james gosling
-1003,operating system,concepts by silberschatz, galvin and gagne
-1004,computer networks,frouzen
-1005,python,guido
-1006,hc verma physics,hc verma
+1001|Java Programming|James Gosling|Programming
+1002|Python Basics|Guido van Rossum|Programming
+1003|Operating System Concepts|Silberschatz|Education
+1004|Computer Networks|Andrew S. Tanenbaum|Education
+1005|The Hobbit|J.R.R. Tolkien|Fantasy
+1006|Harry Potter|J.K. Rowling|Fantasy
+1007|Dracula|Bram Stoker|Horror
+1008|The Shining|Stephen King|Horror
+1009|Pride and Prejudice|Jane Austen|Romance
+1010|Me Before You|Jojo Moyes|Romance
+1011|A Brief History of Time|Stephen Hawking|Science
+1012|HC Verma Physics|H.C. Verma|Science
+1013|World War 2|Winston Churchill|History
+1014|The History of India|Romila Thapar|History
+1015|Sapiens|Yuval Noah Harari|History

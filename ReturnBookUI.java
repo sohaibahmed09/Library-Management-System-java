@@ -1,98 +1,85 @@
 import javax.swing.*;
 import java.io.*;
+import java.util.*;
 
 public class ReturnBookUI {
 
+    JFrame frame;
+    JComboBox<String> issuedBooks;
+
     public ReturnBookUI() {
 
-        JFrame frame = new JFrame("Return Book");
-        frame.setSize(300,200);
+        frame = new JFrame("Return Book");
+        frame.setSize(400,200);
         frame.setLayout(null);
 
-        JLabel idLabel = new JLabel("Book ID");
-        idLabel.setBounds(20,40,100,25);
-        frame.add(idLabel);
+        issuedBooks = new JComboBox<>();
+        issuedBooks.setBounds(50, 40, 250, 25);
+        frame.add(issuedBooks);
 
-        JTextField idField = new JTextField();
-        idField.setBounds(120,40,140,25);
-        frame.add(idField);
-
-        JButton returnBtn = new JButton("Return");
-        returnBtn.setBounds(90,90,100,30);
+        JButton returnBtn = new JButton("Return Book");
+        returnBtn.setBounds(100, 90, 150, 30);
         frame.add(returnBtn);
 
-        returnBtn.addActionListener(e -> {
+        loadIssuedBooks();
 
-            try {
-                int id = Integer.parseInt(idField.getText());
+        returnBtn.addActionListener(e -> returnBook());
 
-                File inputFile = new File("issued.txt");
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
 
-                if (!inputFile.exists()) {
-                    JOptionPane.showMessageDialog(frame,
-                            "No issued books");
-                    return;
-                }
+    private void loadIssuedBooks() {
+        try {
+            issuedBooks.removeAllItems();
 
-                File tempFile = new File("temp.txt");
+            BufferedReader br = new BufferedReader(new FileReader("issued.txt"));
+            String line;
 
-                BufferedReader br =
-                        new BufferedReader(new FileReader(inputFile));
-
-                BufferedWriter bw =
-                        new BufferedWriter(new FileWriter(tempFile));
-
-                String line;
-                boolean found = false;
-                long fine = 0;
-
-                while ((line = br.readLine()) != null) {
-
-                    String[] parts = line.split(",", 4);
-                    int bookId = Integer.parseInt(parts[0]);
-
-                    if (bookId == id) {
-                        found = true;
-
-                        java.time.LocalDate dueDate =
-                                java.time.LocalDate.parse(parts[3]);
-
-                        java.time.LocalDate today =
-                                java.time.LocalDate.now();
-
-                        long daysLate =
-                                java.time.temporal.ChronoUnit.DAYS
-                                .between(dueDate, today);
-
-                        if (daysLate > 0)
-                            fine = daysLate * 5;
-
-                    } else {
-                        bw.write(line);
-                        bw.newLine();
-                    }
-                }
-
-                br.close();
-                bw.close();
-
-                inputFile.delete();
-                tempFile.renameTo(inputFile);
-
-                if (found) {
-                    JOptionPane.showMessageDialog(frame,
-                            "Book Returned\nFine: Rs " + fine);
-                } else {
-                    JOptionPane.showMessageDialog(frame,
-                            "Book not issued");
-                }
-
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame,
-                        "Error returning book");
+            while((line = br.readLine()) != null) {
+                issuedBooks.addItem(line); // full line
             }
-        });
-frame.setLocationRelativeTo(null);
-frame.setVisible(true);
+
+            br.close();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void returnBook() {
+        try {
+            String selected = (String) issuedBooks.getSelectedItem();
+
+            if(selected == null) return;
+
+            File inputFile = new File("issued.txt");
+            File tempFile = new File("temp.txt");
+
+            BufferedReader br = new BufferedReader(new FileReader(inputFile));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
+
+            String line;
+
+            while((line = br.readLine()) != null) {
+                if(!line.equals(selected)) {
+                    bw.write(line);
+                    bw.newLine();
+                }
+            }
+
+            br.close();
+            bw.close();
+
+            inputFile.delete();
+            tempFile.renameTo(inputFile);
+
+            JOptionPane.showMessageDialog(frame, "Book Returned");
+
+            loadIssuedBooks(); // refresh
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }
